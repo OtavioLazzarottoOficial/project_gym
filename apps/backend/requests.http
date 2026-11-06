@@ -4,22 +4,22 @@
 # Nunca salve senhas ou tokens reais neste arquivo. Cada bloco é executado separadamente.
 # Execute primeiro o bloco "login"; os blocos autenticados usam seu token em memória.
 @baseUrl = http://localhost:3000
-@organizationId = substitua-pelo-id-da-rede
+@organizationId = 06f1a822-4a40-401e-9fa2-45db8c52f8f5
 @userId = substitua-pelo-id-do-usuario
-@memberEmail = pessoa-teste@example.com
+@memberEmail = admin@teste.com
 
 ### Verificar conexão pública com o backend.
 GET {{baseUrl}}/connection
 
 ### Login — use uma conta de teste existente (o token é válido por 8 horas).
 # @name login
-# @prompt email teste@admin.com
-# @prompt password @O17931793l
+# @prompt email admin@teste.com
+# @prompt password Senha da conta de teste
 POST {{baseUrl}}/sessions
 Content-Type: application/json
 
 {
-  "email": "{{email}}",
+  "email": "admin@teste.com",
   "password": "{{password}}"
 }
 
@@ -118,10 +118,20 @@ Authorization: Bearer {{login.response.body.$.access_token}}
 Content-Type: application/json
 
 {
-  "branchId": "substitua-pelo-id-da-unidade",
+  "branchId": "42c72484-a510-441a-9c77-171f64dd3e9d",
   "name": "Aluno de teste",
   "email": "{{memberEmail}}",
   "cpf": "substitua-por-cpf-de-teste-valido",
   "phone": "(49) 99999-0000",
   "birthDate": "2000-01-01"
 }
+
+### Consultar alunos — requer administrador ou instrutor vinculado à rede.
+# A página começa em 1, tem 20 alunos e informa se há próxima página.
+GET {{baseUrl}}/organizations/{{organizationId}}/students?page=1
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### Consultar aluno específico — substitua pelo ID retornado na listagem.
+@studentId = substitua-pelo-id-do-aluno
+GET {{baseUrl}}/organizations/{{organizationId}}/students/{{studentId}}
+Authorization: Bearer {{login.response.body.$.access_token}}

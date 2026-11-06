@@ -6,8 +6,22 @@ import type { Student } from '../../enterprise/student.ts';
 import type { StudentAlreadyExistsError } from '../errors/student-already-exists-error.ts';
 import type { StudentIdentityConflictError } from '../errors/student-identity-conflict-error.ts';
 
+export type StudentRecord = { student: Student; name: string; email: string };
+export const STUDENTS_PAGE_SIZE = 20;
+export type StudentPage = { students: StudentRecord[]; hasNextPage: boolean };
+
 @Injectable()
 export abstract class StudentsRepository {
+  abstract findByOrganizationId(
+    organizationId: string,
+    page: number,
+  ): Promise<StudentPage>;
+
+  abstract findById(
+    organizationId: string,
+    studentId: string,
+  ): Promise<StudentRecord | null>;
+
   // One atomic operation: resolve global email/CPF, enforce CPF uniqueness, create or reuse the account,
   // create or change the network role to student, and create its student record. Preserve existing passwords.
   // Never attach a CPF to a different account, overwrite another CPF, or expose data from another network.

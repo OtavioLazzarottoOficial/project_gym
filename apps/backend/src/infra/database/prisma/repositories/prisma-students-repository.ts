@@ -3,6 +3,7 @@ import { NotAllowedError } from '../../../../domain/accounts/application/errors/
 import type { User } from '../../../../domain/accounts/enterprise/user.ts';
 import { UserRole } from '../../../../domain/accounts/enterprise/enums/user-role.ts';
 import { StudentsRepository } from '../../../../domain/students/application/repositories/students-repository.ts';
+import { STUDENTS_PAGE_SIZE } from '../../../../domain/students/application/repositories/students-repository.ts';
 import { StudentRegistrationClock } from '../../../../domain/students/application/services/student-registration-clock.ts';
 import type { Student } from '../../../../domain/students/enterprise/student.ts';
 import { StudentAlreadyExistsError } from '../../../../domain/students/application/errors/student-already-exists-error.ts';
@@ -20,6 +21,50 @@ export class PrismaStudentsRepository extends StudentsRepository {
     private readonly clock: StudentRegistrationClock,
   ) {
     super();
+  }
+
+  async findByOrganizationId(organizationId: string, page: number) {
+    const records = await this.prisma.student.findMany({
+      where: { organization_id: organizationId },
+      include: { membership: { include: { user: true } } },
+      orderBy: { id: 'asc' },
+      skip: (page - 1) * STUDENTS_PAGE_SIZE,
+      take: STUDENTS_PAGE_SIZE + 1,
+    });
+
+    return {
+      hasNextPage: records.length > STUDENTS_PAGE_SIZE,
+      students: records.slice(0, STUDENTS_PAGE_SIZE).map((record) => ({
+        student: PrismaStudentMapper.toDomain(
+          record,
+          record.membership.user,
+          this.clock.today(),
+        ),
+        name: record.membership.user.name,
+        email: record.membership.user.email,
+      })),
+    };
+  }
+
+  async findById(organizationId: string, studentId: string) {
+    const record = await this.prisma.student.findFirst({
+      where: { id: studentId, organization_id: organizationId },
+      include: { membership: { include: { user: true } } },
+    });
+
+    if (!record) {
+      return null;
+    }
+
+    return {
+      student: PrismaStudentMapper.toDomain(
+        record,
+        record.membership.user,
+        this.clock.today(),
+      ),
+      name: record.membership.user.name,
+      email: record.membership.user.email,
+    };
   }
 
   async register(

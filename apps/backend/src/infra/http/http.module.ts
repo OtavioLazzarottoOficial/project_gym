@@ -1,4 +1,6 @@
 import { EnvModule } from '../env/env.module.ts';
+import { ConsultStudentsController } from './controllers/consult-students.controller.ts';
+import { ConsultStudentsUseCase } from '../../domain/students/application/usecases/consult-students-usecase.ts';
 import { RegisterStudentController } from './controllers/register-student.controller.ts';
 import { RegisterStudentUseCase } from '../../domain/students/application/usecases/register-student-usecase.ts';
 import { ChangePasswordController } from './controllers/change-password.controller.ts';
@@ -38,6 +40,7 @@ import { ListBranchesUseCase } from '../../domain/organizations/application/usec
     AppController,
     CreateUserController,
     RegisterStudentController,
+    ConsultStudentsController,
     ChangePasswordController,
     InvitationsController,
     AuthenticateController,
@@ -48,6 +51,7 @@ import { ListBranchesUseCase } from '../../domain/organizations/application/usec
   providers: [
     CreateUserUseCase,
     RegisterStudentUseCase,
+    ConsultStudentsUseCase,
     ChangePasswordUseCase,
     IssueInvitationUseCase,
     ReissueInvitationByEmailUseCase,

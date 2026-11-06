@@ -132,6 +132,182 @@ describe('Student registration (PostgreSQL isolated schema)', () => {
   });
   const path = (orgId: string) => `/organizations/${orgId}/students`;
 
+  it('paginates only the requested network and validates page boundaries', async () => {
+    const admin = await setup();
+    const other = await setup();
+    const cpfFor = (index: number) => {
+      let digits = String(100000000 + index);
+      for (const weight of [10, 11]) {
+        const sum = Array.from(digits).reduce(
+          (total, digit, position) =>
+            total + Number(digit) * (weight - position),
+          0,
+        );
+        const remainder = sum % 11;
+        digits += String(remainder < 2 ? 0 : 11 - remainder);
+      }
+      return digits;
+    };
+    for (let index = 0; index < 21; index++) {
+      const user = await prisma.user.create({
+        data: {
+          name: `Aluno ${index}`,
+          email: `pagination-${index}@example.test`,
+          cpf: cpfFor(index),
+        },
+      });
+      const member = await prisma.membership.create({
+        data: {
+          user_id: user.id,
+          organization_id: admin.organization.id,
+          role: 'student',
+        },
+      });
+      await prisma.student.create({
+        data: {
+          membership_id: member.id,
+          organization_id: admin.organization.id,
+          branch_id: admin.branch.id,
+          birth_date: new Date('2000-01-01T00:00:00Z'),
+          phone: '49999990000',
+        },
+      });
+    }
+    const first = await request(app.getHttpServer())
+      .get(path(admin.organization.id))
+      .auth(admin.token, { type: 'bearer' })
+      .expect(200);
+    const second = await request(app.getHttpServer())
+      .get(path(admin.organization.id))
+      .query({ page: 2 })
+      .auth(admin.token, { type: 'bearer' })
+      .expect(200);
+    const third = await request(app.getHttpServer())
+      .get(path(admin.organization.id))
+      .query({ page: 3 })
+      .auth(admin.token, { type: 'bearer' })
+      .expect(200);
+    expect(first.body.students).toHaveLength(20);
+    expect(first.body.pagination).toEqual({
+      page: 1,
+      page_size: 20,
+      has_next_page: true,
+    });
+    expect(second.body.students).toHaveLength(1);
+    expect(second.body.pagination).toEqual({
+      page: 2,
+      page_size: 20,
+      has_next_page: false,
+    });
+    expect(third.body.students).toHaveLength(0);
+    expect(third.body.pagination.has_next_page).toBe(false);
+    const ids = [...first.body.students, ...second.body.students].map(
+      (student: { id: string }) => student.id,
+    );
+    expect(new Set(ids).size).toBe(21);
+    expect(ids).toEqual([...ids].sort());
+    const empty = await request(app.getHttpServer())
+      .get(path(other.organization.id))
+      .auth(other.token, { type: 'bearer' })
+      .expect(200);
+    expect(empty.body.students).toEqual([]);
+    for (const page of ['0', '-1', '1.5', '', '1000000', 'abc', '01']) {
+      await request(app.getHttpServer())
+        .get(path(admin.organization.id))
+        .query({ page })
+        .auth(admin.token, { type: 'bearer' })
+        .expect(400);
+    }
+  });
+
+  it('lets administrators and instructors consult students only in their network', async () => {
+    const admin = await setup();
+    const other = await setup();
+    const created = await request(app.getHttpServer())
+      .post(path(admin.organization.id))
+      .auth(admin.token, { type: 'bearer' })
+      .send({
+        ...body(admin.branch.id),
+        emergencyContact: {
+          name: 'Contato',
+          phone: '(49) 3333-0000',
+          relationship: 'Irmã',
+        },
+      })
+      .expect(201);
+    const studentId = created.body.student.id;
+    const instructor = makeUser({ password_hash: 'stored-hash' });
+    await module.get(UsersRepository).create(instructor);
+    await prisma.membership.create({
+      data: {
+        user_id: instructor.id.toString(),
+        organization_id: admin.organization.id,
+        role: 'instructor',
+      },
+    });
+    const instructorToken = await issueSession(
+      module.get(JwtService),
+      module.get(AuthSessionsRepository),
+      instructor,
+    );
+
+    for (const token of [admin.token, instructorToken]) {
+      const list = await request(app.getHttpServer())
+        .get(path(admin.organization.id))
+        .auth(token, { type: 'bearer' })
+        .expect(200);
+      expect(list.body.students).toHaveLength(1);
+      expect(list.body.students[0]).toMatchObject({
+        id: studentId,
+        name: 'Aluno de teste',
+        email: 'aluno@example.test',
+        cpf: '52998224725',
+        emergency_contact: { name: 'Contato' },
+      });
+      expect(JSON.stringify(list.body)).not.toMatch(
+        /password|hash|financial|payment/i,
+      );
+      const detail = await request(app.getHttpServer())
+        .get(`${path(admin.organization.id)}/${studentId}`)
+        .auth(token, { type: 'bearer' })
+        .expect(200);
+      expect(detail.body.student.id).toBe(studentId);
+      expect(detail.headers['cache-control']).toBe('no-store');
+    }
+    await request(app.getHttpServer())
+      .get(`${path(other.organization.id)}/${studentId}`)
+      .auth(other.token, { type: 'bearer' })
+      .expect(404);
+    const empty = await request(app.getHttpServer())
+      .get(path(other.organization.id))
+      .auth(other.token, { type: 'bearer' })
+      .expect(200);
+    expect(empty.body.students).toEqual([]);
+    await request(app.getHttpServer())
+      .get(path(admin.organization.id))
+      .auth(other.token, { type: 'bearer' })
+      .expect(403);
+    await request(app.getHttpServer())
+      .get(path(admin.organization.id))
+      .expect(401);
+    await request(app.getHttpServer())
+      .get(`${path(admin.organization.id)}/invalid`)
+      .auth(admin.token, { type: 'bearer' })
+      .expect(400);
+
+    await prisma.membership.updateMany({
+      where: {
+        user_id: instructor.id.toString(),
+        organization_id: admin.organization.id,
+      },
+      data: { role: 'student' },
+    });
+    await request(app.getHttpServer())
+      .get(path(admin.organization.id))
+      .auth(instructorToken, { type: 'bearer' })
+      .expect(403);
+  });
+
   it('stores normalized student and CPF, creates account and membership, and sends invitation', async () => {
     const { organization, branch, token } = await setup();
     const response = await request(app.getHttpServer())

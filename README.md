@@ -54,7 +54,7 @@ Para hospedar o frontend como SPA, configure fallback para index.html e VITE_API
 
 ## Contexto e planejamento do negócio
 
-O Project Gym atende redes de academias com administrador de plataforma, administradores de rede, instrutores e alunos. Contas, login, redes, unidades e convites estão implementados. O cadastro específico de alunos está disponível no backend; consulta de alunos, planos, matrículas e controle financeiro manual seguem planejados.
+O Project Gym atende redes de academias com administrador de plataforma, administradores de rede, instrutores e alunos. Contas, login, redes, unidades, convites e cadastro e consulta de alunos estão implementados. Planos, matrículas e controle financeiro manual seguem planejados.
 
 - [Definição do projeto: contexto, requisitos, regras e critérios de aceitação](docs/project-definition.md).
 - [Plano de implementação e acompanhamento das tarefas](docs/implementation-plan.md).

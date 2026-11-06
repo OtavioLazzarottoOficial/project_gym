@@ -57,7 +57,7 @@ Conta de acesso e cadastro específico de aluno/instrutor são conceitos distint
 
 ## Requisitos funcionais
 
-Todos os RFs abaixo estão confirmados quanto ao objetivo. RF-001 possui cadastro HTTP e frontend; RF-002/RF-007 possuem login/saída com sessões persistidas e guard; RF-005 possui comando inicial e RF-006 consulta do próprio perfil. Convites/primeira senha (RF-003/RF-008) e troca de senha (RF-004) foram implementados; a validação completa da primeira entrega permanece pendente. Os testes e o plano distinguem implementação parcial de entrega concluída.
+Todos os RFs abaixo estão confirmados quanto ao objetivo. RF-001 possui cadastro HTTP e frontend; RF-002/RF-007 possuem login/saída com sessões persistidas e guard; RF-005 possui comando inicial e RF-006 consulta do próprio perfil. Convites/primeira senha (RF-003/RF-008) e troca de senha (RF-004) foram implementados. A validação da primeira entrega foi concluída conforme os resultados e limites registrados em T-009 no plano.
 
 | ID     | Requisito                                                                                                                                                     | Ator                                                                         | Regras                                  | Aceitação                        |
 | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | --------------------------------------- | -------------------------------- |
@@ -216,7 +216,7 @@ Consultar [plano de implementação](implementation-plan.md). Decisão confirmad
 
 ### Escopo e estado
 
-Decisões confirmadas em conversa com o responsável. O cadastro específico de aluno foi implementado no backend; consulta de alunos, planos, matrículas e controle financeiro ainda não foram implementados. O cadastro de aluno complementa a conta de acesso existente; o cadastro de aluno pode ser feito antes de escolher plano ou criar matrícula. O primeiro acesso continua seguindo o fluxo de conta e convite já definido. A evolução será feita primeiro no backend; frontend novo fica para etapa posterior ou pedido explícito.
+Decisões confirmadas em conversa com o responsável. O cadastro e a consulta de alunos foram implementados no backend; planos, matrículas e controle financeiro ainda não foram implementados. O cadastro de aluno complementa a conta de acesso existente; o cadastro de aluno pode ser feito antes de escolher plano ou criar matrícula. O primeiro acesso continua seguindo o fluxo de conta e convite já definido. A evolução será feita primeiro no backend; frontend novo fica para etapa posterior ou pedido explícito.
 
 Cada pessoa tem identidade global e CPF único globalmente; cada rede independente mantém seu próprio cadastro de aluno. O aluno tem uma unidade principal da rede. O administrador poderá vincular uma conta existente ou criá-la no cadastro. Não presumir que um CPF digitado autorize vincular ou incorporar dados de uma conta existente: conflitos e comprovação do vínculo seguem em aberto.
 

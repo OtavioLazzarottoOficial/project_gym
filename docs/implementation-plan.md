@@ -18,7 +18,7 @@ Contas de acesso e login para administrador, instrutores e alunos. O administrad
 | T-006 | Implementar autenticação, sessões e autorização necessárias aos fluxos | RF-002/RF-005/RF-006/RF-007, RN-013 | T-005 | Concluída | Login, primeiro administrador, sessões, revogação e autorização implementados; validação integrada global permanece em T-009. |
 | T-007 | Expor os fluxos HTTP de cadastro e login | RF-001 a RF-008 | T-006, T-010/T-011 | Concluída | Cadastro por rede, convites, autenticação, saída, perfil e troca de senha expostos por HTTP. |
 | T-008 | Criar interface de login e cadastro administrativo | RF-001 a RF-004, RF-006 a RF-008 | T-007, T-010/T-011 | Concluída | Interface de acesso, convite, perfil e troca de senha implementada; validação visual completa permanece em T-009. |
-| T-009 | Validar a primeira entrega completa                                    | RF-001/RF-002, CA-001 a CA-006 e RNFs confirmados, RF-003/RF-004/RF-005, CA-007 a CA-010                                                                         | T-008, T-010/T-011 | A fazer      | Fluxos completos, concorrência, rejeições sem efeitos, primeiro acesso e restrição por perfil verificados; documentação e tarefas atualizadas                                                                                                                                                                                                                                             |
+| T-009 | Validar a primeira entrega completa                                    | RF-001/RF-002, CA-001 a CA-006 e RNFs confirmados, RF-003/RF-004/RF-005, CA-007 a CA-010                                                                         | T-008, T-010/T-011 | Concluída    | Fluxos, concorrência, rejeições sem efeitos, primeiro acesso e restrição por perfil verificados; documentação e tarefas atualizadas. |
 
 ## Complementos da primeira entrega
 
@@ -35,7 +35,13 @@ Alunos, matrículas e demais operações serão detalhados em tarefas próprias 
 
 ## Acompanhamento
 
-T-001 a T-008 e T-010/T-011 concluídas quanto à implementação. T-009 permanece para validação completa da primeira entrega. Os registros abaixo preservam o histórico de cada etapa.
+T-001 a T-011 concluídas quanto à implementação e validação da primeira entrega. Os registros abaixo preservam o histórico de cada etapa.
+
+### Validação parcial de contas — 06/11/2026
+
+Foram executados 193 testes unitários e 24 HTTP do backend, 58 testes de integração PostgreSQL e 20 testes do frontend, todos aprovados. A integração cobre, entre outros cenários, isolamento entre redes, autorização por vínculo, cadastro concorrente, convites e consumo concorrente, primeiro administrador, sessões e troca de senha. Os testes PostgreSQL passaram executados em sequência com `npm run test:integration --workspace @repo/backend -- --no-file-parallelism`; a tentativa paralela esgotou o tempo na preparação dos schemas. O envio de email é simulado nos testes automatizados.
+
+Na continuação, um frontend e uma API temporários conectados a schema isolado permitiram verificar visualmente o login administrativo, a consulta do perfil, o cadastro de aluno com aviso de falha no email e a geração de link para administrador. O responsável executou a troca de senha e a definição inicial de senha pelo link de administrador; a interface retornou ao login e o banco temporário confirmou o consumo do convite e a definição da senha. A API, o frontend e o schema de teste foram removidos. O SMTP ficou desabilitado nessa rodada; o envio real com Gmail e o fluxo visual de convite de aluno já haviam sido confirmados anteriormente, conforme o histórico abaixo. T-009 concluída combinando essas verificações com os testes automatizados acima.
 
 ## Atualização do levantamento
 
@@ -119,7 +125,7 @@ A migration preserva contas e valores legados sem atribuir redes ou privilégios
 
 Verificações: 141 testes unitários backend, 23 HTTP, 42 integração PostgreSQL e 17 frontend. Build, tipos, lint e formatação passaram; testes reais cobriram isolamento entre clientes, vínculo da mesma identidade com papéis diferentes, concorrência, promoção autenticada e migration de dados legados. A criação de rede, duas unidades e vínculo de conta foi verificada em navegador com dados e serviços temporários isolados.
 
-## Próximo passo definido
+## Próximo passo definido naquela etapa (histórico)
 
 Validar a primeira entrega de ponta a ponta (T-009). Matrículas, regras de acesso entre unidades, treinos e check-in precisam ser detalhados antes da implementação.
 
@@ -152,11 +158,11 @@ Conforme orientação do responsável, as próximas funcionalidades serão desen
 
 ## Plano proposto: alunos e operação da rede
 
-As tarefas abaixo estão planejadas, não implementadas. Antes de cada ciclo, esclarecer as questões abertas que afetam aquela operação; não bloquear o levantamento de tarefas independentes. O fluxo permanece backend primeiro: DDD, persistência quando necessária, HTTP e exemplos REST Client; frontend não está incluído nesta etapa. A validação da primeira entrega de contas (T-009) continua pendente.
+Antes de cada ciclo, esclarecer as questões abertas que afetam aquela operação; não bloquear o levantamento de tarefas independentes. O fluxo permanece backend primeiro: DDD, persistência quando necessária, HTTP e exemplos REST Client; frontend não está incluído nesta etapa. A validação da primeira entrega de contas (T-009) foi concluída.
 
 | ID | Objetivo | Dependências e decisões | Situação | Condição de conclusão |
 | --- | --- | --- | --- | --- |
-| T-012 | Cadastro e consulta de aluno por rede, unidade principal e conta. | RF-011, RN-020 a RN-023/RN-029; Q-012 permanece quanto a endereço sem número. | Em andamento — consulta pendente | Cadastro DDD, Prisma, HTTP e REST Client implementado e testado; consulta de aluno por administrador e instrutor ainda precisa de ciclo e rota próprios. |
+| T-012 | Cadastro e consulta de aluno por rede, unidade principal e conta. | RF-011, RN-020 a RN-023/RN-029; Q-012 permanece quanto a endereço sem número. | Concluída | Cadastro e consulta por rede implementados no backend, com DDD, Prisma, HTTP e exemplos REST Client. Consulta da situação de acesso depende de T-016. |
 | T-013 | Cadastro de planos da rede. | RF-012/RN-024; resolver Q-013. | A planejar em detalhe | Nome, valor e duração definidos e validados, com isolamento de rede e testes. |
 | T-014 | Matrícula de aluno em plano, datas e situação. | T-012/T-013, RF-013/RN-024/RN-025; resolver Q-013/Q-014. | A planejar em detalhe | Regras de vigência, estados e vínculos verificados, sem exigir plano para cadastro inicial do aluno. |
 | T-015 | Cobrança e pagamento manual. | T-014, RF-014/RN-026; resolver Q-016. | A planejar em detalhe | Cobranças e quitação integral manual com isolamento de rede e autorização; nenhum serviço de pagamento externo. |
@@ -178,4 +184,16 @@ O cadastro foi exposto por POST /organizations/:organizationId/students, restrit
 
 Conta sem senha recebe convite por email após o cadastro; falha de envio mantém a conta pendente e informa o resultado. Uma conta com senha mantém suas credenciais. Conforme decisão do responsável, ao concluir cadastro, um vínculo de administrador ou instrutor na rede selecionada passa a aluno. Exemplos de requisição estão em apps/backend/requests.http.
 
-Verificações: 193 testes unitários, 24 HTTP e 28 testes de integração PostgreSQL isolada (12 de alunos e 16 de contas) passaram; Prisma validate, diff sem divergências no banco temporário e no banco local, typecheck, lint e build passaram. O contexto Nest compilado iniciou e resolveu o caso de uso com os providers reais. Os testes de email foram simulados; não houve envio real nesta etapa. A consulta de alunos, inclusive a autorização de instrutores e a filtragem de dados, ainda requer implementação própria.
+Verificações daquela etapa: 193 testes unitários, 24 HTTP e 28 testes de integração PostgreSQL isolada (12 de alunos e 16 de contas) passaram; Prisma validate, diff sem divergências no banco temporário e no banco local, typecheck, lint e build passaram. O contexto Nest compilado iniciou e resolveu o caso de uso com os providers reais. Os testes de email foram simulados; não houve envio real naquela etapa. A consulta foi implementada posteriormente, conforme abaixo.
+
+## Consulta de alunos (T-012)
+
+`GET /organizations/:organizationId/students` lista os cadastros da rede e `GET /organizations/:organizationId/students/:studentId` consulta um cadastro específico. Administradores e instrutores precisam de vínculo na rede; alunos e administradores da plataforma sem vínculo qualificado são recusados. A resposta inclui os dados cadastrais autorizados por RN-029, sem hash, senha ou dados financeiros. O identificador de aluno de outra rede retorna 404 para quem tem acesso à rede consultada. As respostas não são armazenadas em cache. A situação de acesso permanece na T-016, pois depende de matrícula e pagamentos. Não houve migration nem alteração de frontend.
+
+A integração HTTP com PostgreSQL isolado passou nos 13 testes de alunos, incluindo consulta por ambos os perfis, isolamento de redes e ausência de dados financeiros e credenciais; os 24 testes HTTP existentes também passaram.
+
+A listagem aceita `page` inteiro de 1 a 999999 (padrão 1) e retorna até 20 registros ordenados por ID, mais `pagination` com `page`, `page_size` e `has_next_page`. Página além do fim retorna lista vazia; parâmetros inválidos retornam 400. A consulta individual não é paginada. Como a paginação usa deslocamento, inserções e exclusões entre requisições podem alterar a composição das páginas.
+
+### Interface de alunos
+
+A rota `/students` permite a administradores e instrutores de rede consultar alunos, navegar entre páginas e visualizar os dados cadastrais. Administradores também podem cadastrar alunos escolhendo a unidade, com endereço, responsável e contato de emergência quando necessários. A tela informa o efeito sobre um vínculo administrativo ou de instrutor existente e o resultado do convite, incluindo falha de email e acesso ao reenvio. O backend continua responsável pela autorização e pelas validações. O fluxo visual de cadastro, listagem, detalhes e paginação foi verificado com dados fictícios em schema isolado; o SMTP estava desligado nessa verificação.

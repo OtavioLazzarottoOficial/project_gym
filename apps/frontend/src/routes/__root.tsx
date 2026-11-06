@@ -89,6 +89,15 @@ function MainLayout() {
             </Link>
           )}
           {auth.session && (
+            <Link
+              to="/students"
+              search={{ organizationId: '' }}
+              activeProps={{ className: 'active' }}
+            >
+              Alunos
+            </Link>
+          )}
+          {auth.session && (
             <Link to="/profile" activeProps={{ className: 'active' }}>
               Meu perfil
             </Link>
