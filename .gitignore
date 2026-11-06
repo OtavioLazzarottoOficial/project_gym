@@ -1,0 +1,51 @@
+# Dependências e artefatos gerados nos workspaces
+node_modules/
+dist/
+dist-ssr/
+build/
+.turbo/
+.cache/
+coverage/
+.nyc_output/
+*.tsbuildinfo
+
+# Arquivos gerados pelas ferramentas do projeto
+/apps/backend/src/infra/database/prisma/generated/
+/apps/frontend/src/routeTree.gen.ts
+
+# Configuração local e credenciais
+.env
+.env.*
+!.env.example
+*.local
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Logs, relatórios e arquivos temporários
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.temp/
+.tmp/
+*.tmp
+pids/
+*.pid
+*.pid.lock
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Arquivos locais de editor e sistema operacional
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

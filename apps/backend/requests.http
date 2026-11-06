@@ -1,0 +1,127 @@
+# Project Gym — exemplos para a extensão REST Client do VS Code.
+# Abra a pasta apps/backend no VS Code. Use o banco local de desenvolvimento.
+# A extensão pedirá email e senhas em janelas de entrada ao enviar cada requisição.
+# Nunca salve senhas ou tokens reais neste arquivo. Cada bloco é executado separadamente.
+# Execute primeiro o bloco "login"; os blocos autenticados usam seu token em memória.
+@baseUrl = http://localhost:3000
+@organizationId = substitua-pelo-id-da-rede
+@userId = substitua-pelo-id-do-usuario
+@memberEmail = pessoa-teste@example.com
+
+### Verificar conexão pública com o backend.
+GET {{baseUrl}}/connection
+
+### Login — use uma conta de teste existente (o token é válido por 8 horas).
+# @name login
+# @prompt email teste@admin.com
+# @prompt password @O17931793l
+POST {{baseUrl}}/sessions
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### Minha conta — execute o login antes deste bloco.
+GET {{baseUrl}}/me
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### Consultar redes disponíveis.
+GET {{baseUrl}}/organizations
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### Consultar unidades de uma rede — preencha organizationId acima.
+GET {{baseUrl}}/organizations/{{organizationId}}/branches
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### Criar rede — requer administrador da plataforma; cria dados no banco.
+POST {{baseUrl}}/organizations
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{
+  "name": "Rede de teste"
+}
+
+### Criar unidade — requer permissão administrativa; cria dados no banco.
+POST {{baseUrl}}/organizations/{{organizationId}}/branches
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{
+  "name": "Unidade de teste",
+  "city": "Cidade de teste"
+}
+
+### Cadastrar aluno — requer administrador da rede; cria conta e tenta enviar email.
+# Use somente um endereço de teste que você controla. Role também aceita instructor ou admin.
+# O administrador da plataforma sem vínculo administrativo pode cadastrar somente admin.
+POST {{baseUrl}}/organizations/{{organizationId}}/users
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{
+  "name": "Pessoa de teste",
+  "email": "{{memberEmail}}",
+  "role": "student"
+}
+
+### Reenviar convite — gera novo link e tenta enviar email; invalida o anterior.
+POST {{baseUrl}}/organizations/{{organizationId}}/invitations
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{
+  "email": "{{memberEmail}}"
+}
+
+### Reenviar convite por ID — gera novo link e tenta enviar email; invalida o anterior.
+POST {{baseUrl}}/organizations/{{organizationId}}/users/{{userId}}/invitation
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### Definir senha inicial — consome o convite e altera a conta de teste.
+# Informe o token do convite e a senha da conta de teste quando solicitado.
+# @prompt token Token do convite de teste
+# @prompt password Senha inicial da conta de teste
+POST {{baseUrl}}/invitations/accept
+Content-Type: application/json
+
+{
+  "token": "{{token}}",
+  "password": "{{password}}"
+}
+
+### Trocar minha senha — encerra todas as sessões; use somente uma conta de teste.
+# @prompt password Senha atual da conta de teste
+# @prompt pass Nova senha da conta de teste
+PATCH {{baseUrl}}/me/password
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{
+  "currentPassword": "{{password}}",
+  "newPassword": "{{pass}}"
+}
+
+### Sair — encerra a sessão atual.
+DELETE {{baseUrl}}/sessions/current
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+
+### Cadastrar aluno — requer administrador da rede; cria conta e pode enviar convite por email.
+# Preencha organizationId e os dados de teste. Para menor de 18 anos, informe guardian.
+# Se o email já estiver vinculado como administrador/instrutor nesta rede, o perfil passa a aluno.
+# Substitua CPF e email por dados de teste sob seu controle. Uma conta existente mantém sua senha.
+POST {{baseUrl}}/organizations/{{organizationId}}/students
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{
+  "branchId": "substitua-pelo-id-da-unidade",
+  "name": "Aluno de teste",
+  "email": "{{memberEmail}}",
+  "cpf": "substitua-por-cpf-de-teste-valido",
+  "phone": "(49) 99999-0000",
+  "birthDate": "2000-01-01"
+}

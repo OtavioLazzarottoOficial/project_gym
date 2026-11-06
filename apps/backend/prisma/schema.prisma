@@ -1,0 +1,125 @@
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/infra/database/prisma/generated"
+  moduleFormat        = "esm"
+  importFileExtension = "ts"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  admin
+  instructor
+  student
+}
+
+model User {
+  id                String    @id @default(uuid())
+  name              String    @db.VarChar(120)
+  email             String    @unique(map: "users_email_key")
+  cpf               String?   @unique(map: "users_cpf_key") @db.VarChar(11)
+  legacy_role       UserRole? @map("role")
+  is_platform_admin Boolean   @default(false)
+  password_hash     String?
+  created_at        DateTime  @default(now()) @db.Timestamptz(3)
+  updated_at        DateTime? @db.Timestamptz(3)
+
+  memberships   Membership[]
+  auth_sessions AuthSession[]
+
+  @@map("users")
+}
+
+model AuthSession {
+  id         String    @id @default(uuid())
+  user_id    String
+  created_at DateTime  @default(now()) @db.Timestamptz(3)
+  expires_at DateTime  @db.Timestamptz(3)
+  revoked_at DateTime? @db.Timestamptz(3)
+  user       User      @relation(fields: [user_id], references: [id], onDelete: Restrict)
+
+  @@index([user_id], map: "auth_sessions_user_id_idx")
+  @@map("auth_sessions")
+}
+
+model Organization {
+  id          String       @id @default(uuid())
+  name        String       @db.VarChar(120)
+  created_at  DateTime     @default(now()) @db.Timestamptz(3)
+  branches    Branch[]
+  memberships Membership[]
+
+  @@map("organizations")
+}
+
+model Branch {
+  id              String       @id @default(uuid())
+  organization_id String
+  name            String       @db.VarChar(120)
+  city            String       @db.VarChar(120)
+  created_at      DateTime     @default(now()) @db.Timestamptz(3)
+  organization    Organization @relation(fields: [organization_id], references: [id], onDelete: Restrict)
+  students        Student[]
+
+  @@unique([id, organization_id], map: "branches_id_organization_key")
+  @@index([organization_id], map: "branches_organization_id_idx")
+  @@map("branches")
+}
+
+model Membership {
+  id                  String              @id @default(uuid())
+  organization_id     String
+  user_id             String
+  role                UserRole
+  created_at          DateTime            @default(now()) @db.Timestamptz(3)
+  organization        Organization        @relation(fields: [organization_id], references: [id], onDelete: Restrict)
+  user                User                @relation(fields: [user_id], references: [id], onDelete: Restrict)
+  password_invitation PasswordInvitation?
+  student             Student?
+
+  @@unique([id, organization_id], map: "memberships_id_organization_key")
+  @@unique([organization_id, user_id], map: "memberships_organization_user_key")
+  @@index([user_id], map: "memberships_user_id_idx")
+  @@map("memberships")
+}
+
+model PasswordInvitation {
+  id            String     @id @default(uuid())
+  membership_id String     @unique
+  token_hash    String     @unique
+  expires_at    DateTime   @db.Timestamptz(3)
+  used_at       DateTime?  @db.Timestamptz(3)
+  membership    Membership @relation(fields: [membership_id], references: [id], onDelete: Restrict)
+
+  @@map("password_invitations")
+}
+
+model Student {
+  id                     String     @id @default(uuid())
+  membership_id          String     @unique(map: "students_membership_key")
+  organization_id        String
+  branch_id              String
+  birth_date             DateTime   @db.Date
+  phone                  String     @db.VarChar(11)
+  address_postal_code    String?
+  address_street         String?
+  address_number         String?
+  address_neighborhood   String?
+  address_city           String?
+  address_state          String?
+  address_complement     String?
+  emergency_name         String?
+  emergency_phone        String?
+  emergency_relationship String?
+  guardian_name          String?
+  guardian_phone         String?
+  guardian_relationship  String?
+  membership             Membership @relation(fields: [membership_id, organization_id], references: [id, organization_id], onDelete: Restrict)
+  branch                 Branch     @relation(fields: [branch_id, organization_id], references: [id, organization_id], onDelete: Restrict)
+
+  @@unique([membership_id, organization_id], map: "students_membership_organization_key")
+  @@index([organization_id], map: "students_organization_idx")
+  @@map("students")
+}

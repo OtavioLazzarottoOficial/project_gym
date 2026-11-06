@@ -1,0 +1,4 @@
+node_modules/
+dist/
+src/infra/database/prisma/generated/
+package-lock.json

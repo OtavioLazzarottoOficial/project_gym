@@ -1,0 +1,8 @@
+**/node_modules/**
+**/dist/**
+.turbo/**
+**/generated/**
+**/routeTree.gen.ts
+package-lock.json
+**/.env
+**/.env.*
